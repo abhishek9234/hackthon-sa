@@ -1,0 +1,56 @@
+name: Deploy Azure Storage Account
+
+on:
+  workflow_dispatch:
+    inputs:
+      resource_group_name:
+        description: "Azure Resource Group Name"
+        required: true
+      storage_account_name:
+        description: "Azure Storage Account Name"
+        required: true
+      location:
+        description: "Azure Location (default: East US)"
+        required: false
+        default: "East US"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    # Setup Azure CLI
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Set up Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.6
+
+    # Initialize Terraform
+    - name: Terraform Init
+      run: terraform init
+
+    # Create a `terraform.tfvars` file with inputs
+    - name: Set Inputs
+      run: |
+        echo "resource_group_name = \"${{ github.event.inputs.resource_group_name }}\"" > terraform.tfvars
+        echo "storage_account_name = \"${{ github.event.inputs.storage_account_name }}\"" >> terraform.tfvars
+        echo "location = \"${{ github.event.inputs.location }}\"" >> terraform.tfvars
+
+    # Plan the Terraform deployment
+    - name: Terraform Plan
+      run: terraform plan
+
+    # Apply the Terraform deployment
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+
