@@ -3,16 +3,10 @@ name: Deploy Azure Storage Account
 on:
   workflow_dispatch:
     inputs:
-      resource_group_name:
-        description: "Azure Resource Group Name"
+      environment:
+        description: "Environment to deploy to (dev, staging, prod)"
         required: true
-      storage_account_name:
-        description: "Azure Storage Account Name"
-        required: true
-      location:
-        description: "Azure Location (default: East US)"
-        required: false
-        default: "East US"
+        default: "dev"
 
 jobs:
   deploy:
@@ -39,18 +33,15 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
-    # Create a `terraform.tfvars` file with inputs
-    - name: Set Inputs
+    # Select the correct tfvars file
+    - name: Set Environment Variables
       run: |
-        echo "resource_group_name = \"${{ github.event.inputs.resource_group_name }}\"" > terraform.tfvars
-        echo "storage_account_name = \"${{ github.event.inputs.storage_account_name }}\"" >> terraform.tfvars
-        echo "location = \"${{ github.event.inputs.location }}\"" >> terraform.tfvars
+        echo "ENV_TFVARS=${{ github.event.inputs.environment }}.tfvars" >> $GITHUB_ENV
 
     # Plan the Terraform deployment
     - name: Terraform Plan
-      run: terraform plan
+      run: terraform plan -var-file=${{ env.ENV_TFVARS }}
 
     # Apply the Terraform deployment
     - name: Terraform Apply
-      run: terraform apply -auto-approve
-
+      run: terraform apply -auto-approve -var-file=${{ env.ENV_TFVARS }}

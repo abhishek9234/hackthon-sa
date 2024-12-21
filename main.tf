@@ -3,12 +3,6 @@ provider "azurerm" {
   features {}
 }
 
-# Input Variables
-variable "resource_group_name" {}
-variable "location" {
-  default = "East US"
-}
-variable "storage_account_name" {}
 
 # Create a Resource Group
 resource "azurerm_resource_group" "example" {
