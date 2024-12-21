@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trigger GitHub Action</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select, button {
+      margin-top: 5px;
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+    button {
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Trigger GitHub Actions Workflow</h1>
+  <form id="triggerForm">
+    <label for="environment">Select Environment:</label>
+    <select id="environment" name="environment" required>
+      <option value="dev">Development</option>
+      <option value="staging">Staging</option>
+      <option value="prod">Production</option>
+    </select>
+
+    <label for="token">GitHub Personal Access Token:</label>
+    <input type="password" id="token" name="token" placeholder="Enter your token" required>
+
+    <label for="repo">Repository (owner/repo):</label>
+    <input type="text" id="repo" name="repo" placeholder="e.g., user/repo" required>
+
+    <label for="workflow">Workflow File Name:</label>
+    <input type="text" id="workflow" name="workflow" placeholder="e.g., azure-storage.yml" required>
+
+    <button type="submit">Trigger Workflow</button>
+  </form>
+
+  <div id="response" style="margin-top: 20px;"></div>
+
+  <script>
+    document.getElementById('triggerForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const token = document.getElementById('token').value;
+      const repo = document.getElementById('repo').value;
+      const workflow = document.getElementById('workflow').value;
+      const environment = document.getElementById('environment').value;
+
+      const url = `https://api.github.com/repos/${repo}/actions/workflows/${workflow}/dispatches`;
+
+      const responseDiv = document.getElementById('response');
+      responseDiv.innerHTML = 'Triggering workflow...';
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+          },
+          body: JSON.stringify({
+            ref: 'main', // Replace with the branch you want to trigger the workflow on
+            inputs: {
+              environment: environment,
+            },
+          }),
+        });
+
+        if (response.ok) {
+          responseDiv.innerHTML = `<p style="color: green;">Workflow triggered successfully!</p>`;
+        } else {
+          const error = await response.json();
+          responseDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+      } catch (error) {
+        responseDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
