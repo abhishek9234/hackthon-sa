@@ -7,7 +7,7 @@ on:
         description: "Environment to deploy to (dev, staging, prod)"
         required: true
         default: "dev"
-      storage_account_name:
+      resource_name:
         description: "Storage Account Name"
         required: true
         type: string
@@ -48,4 +48,4 @@ jobs:
 
     # Apply the Terraform deployment
     - name: Terraform Apply
-      run: terraform apply -auto-approve -var-file=${{ env.ENV_TFVARS }} -var="storage_account_name=${{ github.event.inputs.storage_account_name }}"
+      run: terraform apply -auto-approve -var-file=${{ env.ENV_TFVARS }} -var="storage_account_name=${{ github.event.inputs.resource_name }}"
